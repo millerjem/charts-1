@@ -4,14 +4,14 @@ federate:
     tag: "v0.2.8"
     pullPolicy: IfNotPresent
 
-yakcl-federation:
+kommander-federation:
   enabled: true
 
-yakcl-licensing:
+kommander-licensing:
   enabled: true
 
-yakcl-provisioning:
-  enabled: true
+auto-provisioning:
+  enabled: false
 
 kommander-thanos:
   enabled: true
@@ -193,6 +193,7 @@ kubecost:
 
   cost-analyzer:
     enabled: true
+    fullnameOverride: "kommander-kubecost-cost-analyzer"
     global:
       prometheus:
         # If false, Prometheus will not be installed -- only actively supported on paid Kubecost plans
@@ -213,7 +214,10 @@ kubecost:
       annotations:
         kubernetes.io/ingress.class: traefik
         ingress.kubernetes.io/auth-response-headers: X-Forwarded-User
-        traefik.frontend.rule.type: PathPrefixStrip
+        traefik.frontend.rule.type: "PathPrefix"
+        traefik.frontend.redirect.regex: "^(.*)/ops/portal/kommander/kubecost$"
+        traefik.frontend.redirect.replacement: "$1/ops/portal/kommander/kubecost/"
+        traefik.ingress.kubernetes.io/request-modifier: 'ReplacePathRegex: ^/ops/portal/kommander/kubecost/(.*) /$1'
         traefik.ingress.kubernetes.io/auth-response-headers: X-Forwarded-User
         traefik.ingress.kubernetes.io/auth-type: forward
         traefik.ingress.kubernetes.io/auth-url: http://traefik-forward-auth-kubeaddons.kubeaddons.svc.cluster.local:4181/
@@ -236,6 +240,15 @@ kubecost:
           defaultDatasourceEnabled: false
           # dataSourceName: KubecostPrometheus
           label: grafana_datasource_kommander
+
+    prometheus:
+      fullnameOverride: "kommander-kubecost-prometheus"
+      server:
+        fullnameOverride: "kommander-kubecost-prometheus-server"
+      alertmanager:
+        fullnameOverride: "kommander-kubecost-prometheus-alertmanager"
+      kube-state-metrics:
+        fullnameOverride: "kommander-kubecost-prometheus-kube-state-metrics"
 
     thanos:
       fullnameOverride: "kommander-kubecost-thanos"
